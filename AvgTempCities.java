@@ -1,6 +1,7 @@
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -10,7 +11,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
-import java.util.*;
 
 public class AvgTempCities {
 
@@ -34,12 +34,12 @@ public class AvgTempCities {
 
             String[] line = value.toString().split(",");
 
-            context.write(new Text(filename + "-" + line[0] + "-" + line[5]), new Text(line[6]));
-            // ex: atlanta-1950-01-01-tasmax, 289.12312
+            context.write(new Text(filename + "," + line[0] + "," + line[5] + ","), new Text(line[6]));
+            // ex: atlanta,1950-01-01,tasmax, 289.12312
         }
     }
 
-    public static class IntSumReducer extends Reducer<Text, Text, Text, Text> {
+    public static class AvgCoordinatesReducer extends Reducer<Text, Text, Text, Text> {
 
         public void reduce(Text key, Iterable<Text> values,
                            Context context
@@ -64,8 +64,8 @@ public class AvgTempCities {
         job.setJarByClass(AvgTempCities.class);
         job.setJar("AvgTempCities.jar");
         job.setMapperClass(CoordinateMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
-        job.setReducerClass(IntSumReducer.class);
+        job.setCombinerClass(AvgCoordinatesReducer.class);
+        job.setReducerClass(AvgCoordinatesReducer.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
